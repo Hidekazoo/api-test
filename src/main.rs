@@ -1,32 +1,32 @@
-use std::{env, fs::File, io::BufReader};
+use std::env;
 
 use serde::Deserialize;
 
+mod utils;
+use utils::{execute_test_case, read_yaml, TestCase};
 
 #[derive(Deserialize, Debug)]
-struct TestCases {
-    test_cases: Vec<TestCase>,
+struct Config {
+    base_url: String,
 }
 
-#[derive(Deserialize, Debug)]
-struct TestCase {
-    case: String,
-}
-
-
-
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
-    let filepath = &args[1];
+    if args.len() < 3 {
+        eprintln!("Usage: {} <config_file> <test_file>", args[0]);
+        std::process::exit(1);
+    }
+    
+    let config_file = &args[1];
+    let test_file = &args[2];
 
-    let data = read_yaml(filepath);
-    println!("{:?}", data.unwrap());
+    let config: Config = read_yaml(config_file)?;
+    let test_cases: Vec<TestCase> = read_yaml(test_file)?;
     
-}
-    
-fn read_yaml(filepath: &String) -> Result<TestCases, Box<dyn std::error::Error>> {
-    let file = File::open(filepath).expect("File not found");
-    let reader = BufReader::new(file);
-    let data: TestCases = serde_yaml::from_reader(reader).expect("Error while reading file");
-    Ok(data)
-}
+    let base_url = &config.base_url;
+    for test_case in test_cases.iter() {
+        execute_test_case(base_url, test_case).await?;
+    }
+    Ok(())
+} 
