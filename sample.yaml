@@ -1,8 +1,16 @@
-- case: health check
+- case: "health_check"
   method: "GET"
   path: "/health"
   expected:
     status: 200
-    response: 
-      success: true
-      data: []
+
+- case: "get_user"
+  method: "GET"
+  path: "/users/1"
+  expected:
+    status: 200
+    response: |
+      {
+          "id": "1",
+          "name": "John Doe"
+      }
