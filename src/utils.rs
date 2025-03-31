@@ -6,8 +6,15 @@ use std::{fs::File, io::BufReader};
 pub struct TestCase {
     pub case: String,
     pub method: String,
+    pub headers: Option<Vec<Header>>,
     pub path: String,
     pub expected: Expected,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Header {
+    pub key: String,
+    pub value: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -34,7 +41,13 @@ pub async fn execute_test_case(
     let method = parse_method(&test_case.method);
     let url = format!("{}{}", base_url, test_case.path);
 
-    let response = client.request(method, &url).send().await?;
+    let mut request = client.request(method, &url);
+    if let Some(headers) = &test_case.headers {
+        for header in headers {
+            request = request.header(header.key.as_str(), header.value.as_str());
+        }
+    }
+    let response = request.send().await?;
     assert_test_case(response, test_case).await
 }
 

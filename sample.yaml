@@ -14,3 +14,12 @@
           "id": "1",
           "name": "John Doe"
       }
+
+- case: "auth_check"
+  method: "GET"
+  path: "/auth"
+  headers:
+    - key: "Authorization"
+      value: "Bearer 1234567890"
+  expected:
+    status: 200
