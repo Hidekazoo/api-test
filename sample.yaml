@@ -3,7 +3,6 @@
   path: "/health"
   expected:
     status: 200
-
 - case: "get_user"
   method: "GET"
   path: "/users/1"
@@ -23,3 +22,17 @@
       value: "Bearer 1234567890"
   expected:
     status: 200
+- case: register_user
+  method: "POST"
+  path: "/users"
+  headers:
+    - key: Content-Type
+      value: application/json
+  body: |
+    {
+      "name": "test_user",
+      "email": "test_user@example.com",
+      "password": "password"
+    }
+  expected:
+    status: 201

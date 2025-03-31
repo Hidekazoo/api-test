@@ -8,6 +8,7 @@ pub struct TestCase {
     pub method: String,
     pub headers: Option<Vec<Header>>,
     pub path: String,
+    pub body: Option<serde_json::Value>,
     pub expected: Expected,
 }
 
@@ -46,6 +47,19 @@ pub async fn execute_test_case(
         for header in headers {
             request = request.header(header.key.as_str(), header.value.as_str());
         }
+    }
+    if let Some(body) = &test_case.body {
+        let parsed_body = match body {
+            serde_json::Value::String(json_str) => {
+                match serde_json::from_str::<serde_json::Value>(json_str) {
+                    Ok(parsed) => parsed,
+                    Err(_) => body.clone(),
+                }
+            }
+            _ => body.clone(),
+        };
+
+        request = request.json(&parsed_body);
     }
     let response = request.send().await?;
     assert_test_case(response, test_case).await
